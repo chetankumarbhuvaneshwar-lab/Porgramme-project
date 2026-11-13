@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LIMS System Readiness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#eef1ef; --card:#ffffff; --ink:#1c2521; --muted:#5f6c66; --line:#dbe2de; --soft:#f5f7f6;
+  --green:#12875c; --green-d:#0b5c3f; --green-l:#e3f3ec;
+  --amber:#f2b705; --amber-d:#a77c00; --amber-l:#fff6d6;
+  --red:#d6443a; --red-l:#fde8e6;
+  --blue:#2d6fb3; --blue-l:#e5eef8;
+  --purple:#7140a8; --purple-l:#f1e9fb;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:'Barlow',Arial,sans-serif;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;cursor:pointer;color:inherit}
+input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1320px;margin:0 auto;padding:20px 24px 40px}
+
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand-mark{width:38px;height:38px}
+.brand h1{font-size:24px;line-height:1.1;margin:0;font-weight:700;letter-spacing:-.01em}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.top-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.asof{font-size:14px;color:var(--muted);background:var(--card);border:1px solid var(--line);padding:7px 12px;border-radius:999px}
+.asof b{color:var(--ink);font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:7px 13px;font-size:14px;font-weight:600}
+.btn:hover{border-color:#aab6b0}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.primary:hover{background:#000}
+.btn.green{background:var(--green);border-color:var(--green);color:#fff}
+.btn.danger{color:var(--red)}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+
+/* edit bar */
+.editbar{display:none;align-items:center;gap:10px;flex-wrap:wrap;background:#1c2521;color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:16px;font-size:14px}
+body.editing .editbar{display:flex}
+.editbar .msg{flex:1;min-width:220px;color:#cfd8d3}
+.editbar .msg b{color:#fff}
+.editbar .btn{background:#2c3733;border-color:#3d4a45;color:#fff}
+.editbar .btn:hover{background:#38453f}
+.dirty{display:inline-block;background:var(--amber);color:#1c2521;border-radius:6px;padding:1px 7px;font-weight:700;font-size:12px;margin-left:6px}
+.ed-only{display:none !important}
+body.editing .ed-only{display:inline-flex !important}
+.ibtn{border:1px solid var(--line);background:#fff;border-radius:7px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;padding:0;flex:0 0 auto}
+.ibtn:hover{border-color:var(--ink)}
+.ibtn.del:hover{border-color:var(--red);color:var(--red)}
+.ibtn svg{width:15px;height:15px}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px}
+
+/* stage */
+.stage{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 48%,#ffffff 0%,#f7f9f8 55%,#eef2f0 100%)}
+.stage svg.landscape{display:block;width:100%;height:auto}
+.stats{position:absolute;left:22px;top:18px;display:flex;gap:8px;flex-wrap:wrap;max-width:60%}
+.stat{background:rgba(255,255,255,.9);border:1px solid var(--line);border-radius:10px;padding:6px 11px;font-size:13px;color:var(--muted);text-decoration:none}
+a.stat:hover{border-color:var(--green)}
+.stat b{display:block;font-size:20px;color:var(--ink);line-height:1.1;font-weight:700}
+
+/* traffic light */
+.tl-wrap{position:absolute;right:20px;top:16px;z-index:5}
+.tl-btn{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:14px;padding:10px 14px 10px 10px;box-shadow:0 4px 18px rgba(20,40,30,.08);text-align:left}
+.tl-btn:hover{border-color:#b9c4bf}
+.tl{background:#22292a;border-radius:12px;padding:7px 6px;display:flex;flex-direction:column;gap:6px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.35)}
+.lamp{width:20px;height:20px;border-radius:50%;background:#3b4445;box-shadow:inset 0 2px 3px rgba(0,0,0,.5)}
+.lamp.on.red{background:#ff4d40;box-shadow:0 0 12px 3px rgba(255,77,64,.7)}
+.lamp.on.amber{background:#ffc21a;box-shadow:0 0 12px 3px rgba(255,194,26,.75)}
+.lamp.on.green{background:#22c97a;box-shadow:0 0 12px 3px rgba(34,201,122,.7)}
+.tl-text small{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tl-text b{font-size:20px;line-height:1.15;display:block}
+.tl-text span{font-size:13px;color:var(--muted)}
+.tl-pop{position:absolute;right:0;top:calc(100% + 8px);width:330px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 12px 30px rgba(20,40,30,.14);display:none;font-size:14px}
+.tl-pop.open{display:block}
+.tl-pop h4{margin:0 0 8px;font-size:15px}
+.tl-pop ul{margin:0;padding-left:18px}
+.tl-pop li{margin:4px 0}
+.tl-pop p{margin:10px 0 0;color:var(--muted);font-size:12.5px}
+.tl-pop .ovr{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);align-items:center;gap:8px;font-weight:600}
+body.editing .tl-pop .ovr{display:flex}
+.tl-pop select{border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+
+/* svg interactivity */
+.node{cursor:pointer}
+.node .lift{transition:transform .25s ease}
+.node:hover .lift,.node:focus .lift{transform:translateY(-6px)}
+.node:hover .lbl-rect{stroke:var(--green);stroke-width:2.2}
+.node:focus{outline:none}
+.node:focus-visible .lbl-rect{stroke:var(--blue);stroke-width:3}
+.flow{animation:flow 1.4s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-48}}
+.hint{font-family:'Barlow',Arial,sans-serif;font-size:14px;fill:var(--muted)}
+
+.legend{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;padding:12px 16px 16px;font-size:15px;color:#33403a}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+
+/* milestones */
+.section-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:28px 2px 12px;flex-wrap:wrap}
+.section-title h2{margin:0;font-size:20px}
+.section-title span{color:var(--muted);font-size:14px}
+.ms-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.ms-card{padding:18px 18px 8px}
+.ms-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ms-head h3{margin:0;font-size:17px;flex:1}
+.tag{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 9px;border-radius:7px}
+.tag.it{background:var(--blue-l);color:var(--blue)}
+.tag.biz{background:var(--purple-l);color:var(--purple)}
+.ms-list{list-style:none;margin:0;padding:0}
+.ms-row{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line)}
+.ms-list li:first-child .ms-row{border-top:0}
+.ms{flex:1;display:grid;grid-template-columns:74px 1fr auto;gap:14px;align-items:center;padding:11px 6px;text-decoration:none;border-radius:8px;min-width:0}
+a.ms:hover{background:var(--soft)}
+.ms-date{text-align:center;border:1px solid var(--line);border-radius:10px;padding:4px 0;background:#fff}
+.ms-date b{display:block;font-size:20px;line-height:1.1}
+.ms-date small{font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+.ms-title{font-weight:600;font-size:15.5px}
+.ms-sys{font-size:13px;color:var(--muted);margin-top:2px}
+.ms-when{font-size:13px;color:var(--muted);white-space:nowrap;text-align:right}
+.ms-when.soon{color:var(--amber-d);font-weight:600}
+.ms-when.late{color:var(--red);font-weight:600}
+.empty{padding:20px 18px;color:var(--muted);font-size:14px}
+
+/* detail page */
+.crumbs{font-size:14px;color:var(--muted);margin:4px 0 14px}
+.crumbs a{text-decoration:none;color:var(--green-d);font-weight:600}
+.crumbs a:hover{text-decoration:underline}
+.dhero{display:grid;grid-template-columns:220px 1fr 170px;gap:24px;align-items:center;padding:20px 26px;position:relative}
+.dhero .edit-sys{position:absolute;right:16px;top:14px}
+.dicon svg{width:100%;height:auto;display:block}
+.eyebrow{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.dinfo h1{margin:4px 0 8px;font-size:34px;line-height:1.1}
+.dinfo p{margin:12px 0 0;color:#3b4742;font-size:16px;line-height:1.5;max-width:640px}
+.spill{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:14px;padding:5px 12px 5px 6px;border-radius:999px}
+.spill.completed{background:var(--green-l);color:var(--green-d)}
+.spill.ontrack,.spill.inprogress{background:var(--amber-l);color:#7a5c00}
+.spill.atrisk{background:var(--red-l);color:var(--red)}
+.ring{text-align:center}
+.ring svg{width:130px;height:130px}
+.ring small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:16px 0}
+.kpi{padding:14px 18px}
+.kpi small{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+.kpi b{display:block;font-size:30px;line-height:1.15;margin-top:4px}
+.kpi span{font-size:13.5px;color:var(--muted)}
+.kpi.warn b{color:var(--red)}
+
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.panel{padding:16px 0 6px;overflow:hidden}
+.phead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 18px 12px;flex-wrap:wrap}
+.ptitle{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
+.chips{display:flex;gap:6px;align-items:center}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:13.5px;color:var(--muted)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.thead,.trow{display:grid;grid-template-columns:minmax(0,1fr) 140px 118px 124px;gap:12px;align-items:center;padding:10px 18px}
+body.editing .thead,body.editing .trow{grid-template-columns:minmax(0,1fr) 170px 140px 130px 64px}
+body.editing .panels{grid-template-columns:1fr}
+body.editing .dhero{padding-top:48px}
+.thead{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--soft);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding-top:8px;padding-bottom:8px}
+.thead .ed-col{display:none}
+body.editing .thead .ed-col{display:block}
+.trow{border-bottom:1px solid var(--line);font-size:14.5px}
+.trow:last-child{border-bottom:0}
+.trow.overdue{background:linear-gradient(90deg,var(--red-l),#fff 40%)}
+.trow.done .tname b{color:var(--muted);text-decoration:line-through;text-decoration-color:#aab4af}
+.tname b{font-weight:500;line-height:1.35;display:block}
+.tname small{display:block;color:var(--amber-d);font-size:12.5px;margin-top:3px;font-weight:600}
+.owner{display:flex;align-items:center;gap:8px;font-size:13.5px;line-height:1.25}
+.owner.tbd{color:var(--muted);font-style:italic}
+.av{flex:0 0 28px;width:28px;height:28px;border-radius:50%;background:#e4ebe7;color:#2f4a3d;display:grid;place-items:center;font-size:11.5px;font-weight:700;font-style:normal}
+.due b{display:block;font-weight:600;font-size:14px}
+.due small{font-size:12.5px;color:var(--muted)}
+.due small.late{color:var(--red);font-weight:600}
+.due small.soon{color:var(--amber-d);font-weight:600}
+.row-acts{display:flex;gap:4px}
+.pill{display:inline-block;font-size:12.5px;font-weight:600;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pill.p-completed{background:var(--green-l);color:var(--green-d)}
+.pill.p-wip{background:var(--blue-l);color:var(--blue)}
+.pill.p-start{background:#edf0ee;color:#4a5450}
+.pill.p-tbd{background:var(--purple-l);color:var(--purple)}
+.pill.p-blocked{background:var(--red-l);color:var(--red)}
+.addrow{padding:10px 18px 12px}
+.ml{margin-top:18px;padding:16px 18px 8px}
+.ml-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.ml h3{margin:0;font-size:17px}
+.sysnav{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;align-items:center}
+.sysnav span{color:var(--muted);font-size:14px;margin-right:4px}
+.sysnav a{text-decoration:none;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:7px}
+.sysnav a:hover{border-color:var(--green)}
+.sysnav a.cur{background:var(--ink);color:#fff;border-color:var(--ink)}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.foot{margin-top:30px;color:var(--muted);font-size:13px;text-align:center}
+
+/* configuration status (CP / IQC) */
+.cfg-card{padding:18px 20px 20px;margin:0 0 18px;background:#f6f4ec}
+.cfg-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.cfg-top h2{margin:0;font-size:21px}
+.cfg-top .sub{color:var(--muted);font-size:14px;margin-top:2px}
+.tabs{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{border:0;background:transparent;border-radius:8px;padding:6px 14px;font-weight:600;font-size:14px;color:var(--muted)}
+.tabs button.on{background:#2f6df6;color:#fff}
+.cfg{display:grid;grid-template-columns:minmax(0,1fr) 240px;gap:18px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:8px}
+.tile{position:relative;border:1px solid rgba(0,0,0,.08);border-radius:4px;padding:10px 8px 6px;text-align:center;min-height:200px;display:flex;flex-direction:column}
+.tile h4{margin:0;font-size:14px;font-weight:600;line-height:1.2;min-height:34px;display:flex;align-items:center;justify-content:center;color:#2a302d}
+.tile svg{width:100%;max-width:150px;margin:auto;display:block}
+.tile .t-acts{position:absolute;right:4px;bottom:4px;gap:4px}
+.tile.add{border:2px dashed #b9c4bf;background:transparent;align-items:center;justify-content:center;color:var(--muted);font-weight:600}
+.side{display:flex;flex-direction:column;gap:14px}
+.side .target{color:#555;font-size:15px;text-align:center;font-weight:600}
+.side svg{width:100%;display:block}
+.clegend{list-style:none;margin:0;padding:0;font-size:13.5px;display:grid;gap:5px}
+.clegend li{display:flex;align-items:center;gap:8px}
+.clegend i{width:18px;height:12px;display:inline-block;border-radius:2px}
+.cfoot{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:12px}
+.prio{display:flex;gap:14px;flex-wrap:wrap;font-size:13.5px}
+.prio span{display:inline-flex;align-items:center;gap:7px}
+.prio i{width:22px;height:14px;display:inline-block;border:1px solid rgba(0,0,0,.08)}
+.note{flex:1;min-width:260px;background:#55595a;color:#fff;font-size:14px;padding:8px 14px;border-radius:3px}
+
+/* modal + toast */
+.modal{position:fixed;inset:0;background:rgba(20,28,25,.45);display:flex;align-items:flex-start;justify-content:center;padding:6vh 14px;z-index:50;overflow:auto}
+.modal[hidden]{display:none}
+.mbox{background:#fff;border-radius:16px;width:100%;max-width:520px;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.mbox h3{margin:0 0 14px;font-size:19px}
+.mbox p{color:#3b4742;line-height:1.5;margin:0 0 12px}
+.fld{display:block;margin-bottom:12px}
+.fld>span{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;border:1px solid #cbd4cf;border-radius:9px;padding:8px 10px;background:#fff}
+.fld textarea{min-height:90px;resize:vertical}
+.fld input:focus,.fld select:focus,.fld textarea:focus{outline:2px solid #9ec9b6;border-color:var(--green)}
+.duef{display:flex;gap:8px;align-items:center}
+.duef input[type=number]{width:90px}
+.duef button{white-space:nowrap}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.mfoot{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:16px}
+.mfoot .spacer{flex:1}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1c2521;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:60;box-shadow:0 8px 24px rgba(0,0,0,.2);max-width:90vw}
+.toast[hidden]{display:none}
+
+@media (max-width:980px){
+  .ms-grid,.panels{grid-template-columns:1fr}
+  .dhero{grid-template-columns:140px 1fr}
+  .ring{grid-column:1 / -1;display:flex;align-items:center;gap:14px;text-align:left}
+  .ring svg{width:90px;height:90px}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .stats{display:none}
+  .cfg{grid-template-columns:1fr}
+  .side{flex-direction:row;flex-wrap:wrap;align-items:flex-start}
+  .side>*{flex:1 1 200px}
+}
+@media (max-width:640px){
+  .wrap{padding:14px 12px 30px}
+  .tl-wrap{position:static;padding:12px 12px 0;display:flex;justify-content:flex-end}
+  .tl-pop{right:12px}
+  .thead{display:none}
+  .trow,body.editing .trow{grid-template-columns:1fr auto;grid-template-areas:"name status" "owner due" "acts acts";row-gap:8px}
+  .trow .tname{grid-area:name}.trow .owner{grid-area:owner}.trow .due{grid-area:due;text-align:right}.trow .st{grid-area:status}.trow .row-acts{grid-area:acts}
+  .dhero{grid-template-columns:1fr;padding:18px}
+  .dicon{max-width:180px}
+  .dinfo h1{font-size:28px}
+  .fgrid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="#">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><polygon points="20,4 37,14 20,24 3,14" fill="#fff" stroke="#1c2521" stroke-width="2" stroke-linejoin="round"/><polygon points="3,14 20,24 20,34 3,24" fill="#e3e9e6" stroke="#1c2521" stroke-width="2" stroke-linejoin="round"/><polygon points="20,24 37,14 37,24 20,34" fill="#cdd6d1" stroke="#1c2521" stroke-width="2" stroke-linejoin="round"/><polygon points="20,8.5 30,14 20,19.5 10,14" fill="none" stroke="#12875c" stroke-width="2.4" stroke-linejoin="round"/></svg>
+      <div><h1>LIMS System Readiness</h1><p>Integration &amp; go-live readiness across the system landscape</p></div>
+    </a>
+    <div class="top-right">
+      <div class="asof">Status as of <b id="asof"></b></div>
+      <button class="btn" id="editToggle" type="button"></button>
+    </div>
+  </header>
+
+  <div class="editbar" id="editbar">
+    <div class="msg" id="editmsg"></div>
+    <button class="btn sm" type="button" data-act="export-html">Download index.html</button>
+    <button class="btn sm" type="button" data-act="export-json">Download data.json</button>
+    <button class="btn sm" type="button" data-act="copy-json">Copy data</button>
+    <button class="btn sm" type="button" data-act="import">Import data</button>
+    <button class="btn sm" type="button" data-act="reset">Discard local changes</button>
+  </div>
+
+  <main id="app"></main>
+  <div class="foot" id="foot"></div>
+</div>
+
+<div class="modal" id="modal" hidden><div class="mbox" id="mbox" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<!-- ====================================================================
+     PROJECT DATA — this block is what the in-page editor reads and writes.
+     "Download index.html" (edit mode) produces a copy of this page with
+     the block updated; commit that file to GitHub to publish changes.
+     ==================================================================== -->
+<script id="lims-data" type="application/json">
+{
+  "updatedAt": "2026-11-13T00:00:00.000Z",
+  "overallOverride": "",
+  "systems": [
+    {
+      "id": "lims-core", "name": "LIMS Core", "status": "ontrack", "role": "Core platform", "callout": ["", ""],
+      "desc": "Core LIMS platform: control plan (CP) and incoming quality control (IQC) configuration, validation and go-live readiness.",
+      "it": [], "biz": []
+    },
+    {
+      "id": "data-platform", "name": "Data Platform", "status": "ontrack", "role": "Analytics & reporting",
+      "callout": ["Connectivity", "Established"],
+      "desc": "Lab results, sample metadata and instrument data flow from LIMS into the enterprise data platform for analytics and QC reporting.",
+      "it": [
+        {"id": "t1", "t": "Connection of Data Platform to Azure Spoke VNet", "owner": "", "due": "", "status": "Completed", "note": ""},
+        {"id": "t2", "t": "Mapping Control Plan ID to each workflow", "owner": "", "due": "2026-12-04", "status": "Work in progress", "note": ""}
+      ],
+      "biz": [
+        {"id": "t3", "t": "Validation of Control Plan ID", "owner": "", "due": "2026-12-11", "status": "Work in progress", "note": ""}
+      ]
+    },
+    {
+      "id": "mes", "name": "MES", "status": "inprogress", "role": "Shop floor execution",
+      "callout": ["Connectivity", "Preparing"],
+      "desc": "Exchange of in-process sample requests, results and batch hold/release decisions between the shop floor (MES) and LIMS.",
+      "it": [
+        {"id": "t4", "t": "Technical connectivity requirements", "owner": "", "due": "", "status": "Yet to start", "note": ""}
+      ],
+      "biz": [
+        {"id": "t5", "t": "Functional requirements for integration", "owner": "", "due": "", "status": "Yet to be defined", "note": ""}
+      ]
+    },
+    {
+      "id": "sap", "name": "SAP", "status": "ontrack", "role": "ERP / Quality Management",
+      "callout": ["ERP Integration", "Aligned"],
+      "desc": "Inspection lots, material master and batch usage decisions synchronised between SAP and LIMS.",
+      "it": [
+        {"id": "t6", "t": "Technical connection – QA", "owner": "", "due": "", "status": "Completed", "note": ""},
+        {"id": "t7", "t": "Technical connection – PROD", "owner": "", "due": "2026-11-20", "status": "Work in progress", "note": "Delayed due to holiday window"}
+      ],
+      "biz": [
+        {"id": "t8", "t": "Functional user testing", "owner": "", "due": "", "status": "Work in progress", "note": ""}
+      ]
+    },
+    {
+      "id": "teamcenter", "name": "Teamcenter", "status": "inprogress", "role": "PLM / Specifications",
+      "callout": ["PLM Connectivity", "Mapped"],
+      "desc": "Product specifications, test methods and limits transferred from Teamcenter PLM into LIMS specifications.",
+      "it": [
+        {"id": "t9", "t": "Technical connectivity requirements", "owner": "", "due": "", "status": "Completed", "note": ""}
+      ],
+      "biz": [
+        {"id": "t10", "t": "Functional requirements for integration", "owner": "", "due": "", "status": "Yet to be defined", "note": ""}
+      ]
+    }
+  ],
+  "milestones": {
+    "it": [
+      {"id": "m1", "date": "2026-11-20", "title": "SAP ↔ LIMS technical connection live in PROD", "sys": "sap"},
+      {"id": "m2", "date": "2026-12-04", "title": "Control Plan ID mapped to each workflow", "sys": "data-platform"}
+    ],
+    "biz": [
+      {"id": "m3", "date": "2026-12-11", "title": "Control Plan ID validation complete", "sys": "data-platform"}
+    ]
+  },
+  "config": {
+    "cp": {
+      "label": "Control Plan (CP)",
+      "title": "CP_LIMS Status report – Control Plan Configuration (Quality)",
+      "badge": "After CP change status",
+      "target": "Target CP items: 330 → 282",
+      "note": "New status update aligning to the change request provided as per the new Control Plan update",
+      "cats": ["systest", "uat", "prod", "indev"],
+      "steps": [
+        {"id": "c1", "name": "Mixing Anode", "prio": 1, "v": {"prod": 7, "uat": 1}},
+        {"id": "c2", "name": "Mixing Cathode", "prio": 1, "v": {"prod": 8, "uat": 1}},
+        {"id": "c3", "name": "Coating Anode", "prio": 1, "v": {"prod": 22, "uat": 5, "systest": 1}},
+        {"id": "c4", "name": "Coating Cathode", "prio": 1, "v": {"prod": 24, "uat": 1, "systest": 1}},
+        {"id": "c5", "name": "Calendering Anode", "prio": 2, "v": {"prod": 4, "systest": 1}},
+        {"id": "c6", "name": "Calendering Cathode", "prio": 2, "v": {"prod": 5, "uat": 3, "systest": 1}},
+        {"id": "c7", "name": "E-Baking", "prio": 2, "v": {"prod": 1, "uat": 2}},
+        {"id": "c8", "name": "Notching Cathode", "prio": 3, "v": {"prod": 28, "uat": 2}},
+        {"id": "c9", "name": "Notching Anode", "prio": 3, "v": {"prod": 27, "uat": 1}},
+        {"id": "c10", "name": "Cell Baking", "prio": 2, "v": {"prod": 2, "uat": 1}},
+        {"id": "c11", "name": "First Filling", "prio": 2, "v": {"prod": 10}},
+        {"id": "c12", "name": "Stacking", "prio": 1, "v": {"prod": 39, "systest": 8}},
+        {"id": "c13", "name": "Wrapping & EOL", "prio": 3, "v": {"prod": 22, "systest": 17}},
+        {"id": "c14", "name": "Formation & Aging", "prio": 2, "v": {"prod": 8}},
+        {"id": "c15", "name": "Cell Assembly", "prio": 1, "v": {"prod": 23, "uat": 6}}
+      ]
+    },
+    "iqc": {
+      "label": "IQC",
+      "title": "IQC_LIMS Status report – Configuration (Quality)",
+      "badge": "After IQC change status",
+      "target": "Target IQC items",
+      "note": "New status update aligning to the change request provided as per the new IQC update",
+      "cats": ["archived", "systest", "uat", "prod", "indev", "pending"],
+      "steps": [
+        {"id": "q1", "name": "Mixing Anode", "prio": 2, "v": {"indev": 6, "prod": 7}},
+        {"id": "q2", "name": "Mixing Cathode", "prio": 2, "v": {"systest": 3, "prod": 5, "uat": 10}},
+        {"id": "q3", "name": "Coating Anode", "prio": 2, "v": {"indev": 2, "pending": 2}},
+        {"id": "q4", "name": "Coating Cathode", "prio": 2, "v": {"indev": 1, "prod": 2, "uat": 5, "systest": 5}},
+        {"id": "q5", "name": "Second Filling", "prio": 2, "v": {"systest": 1}},
+        {"id": "q6", "name": "Final Sealing – Laser Cleaning", "prio": 2, "v": {"systest": 1}},
+        {"id": "q7", "name": "Wrapping", "prio": 2, "v": {"systest": 2}},
+        {"id": "q8", "name": "Final Inspection", "prio": 2, "v": {"uat": 1}},
+        {"id": "q9", "name": "Mylar Wrapping & Hot Melting", "prio": 2, "v": {"systest": 1, "uat": 1}},
+        {"id": "q10", "name": "Housing & Anode Lid Tak Welding", "prio": 2, "v": {"systest": 7}},
+        {"id": "q11", "name": "First Filling", "prio": 2, "v": {"systest": 1, "prod": 1, "uat": 1}},
+        {"id": "q12", "name": "Stacking", "prio": 2, "v": {"uat": 2, "prod": 2}},
+        {"id": "q13", "name": "Cathode Adapter Welding", "prio": 2, "v": {"systest": 2}},
+        {"id": "q14", "name": "Double Stack Welding, Trimming", "prio": 2, "v": {"indev": 1}}
+      ]
+    }
+  }
+}
+</script>
+
+<script>
+/* Snapshot of this page's source, taken before anything renders — used by "Download index.html". */
+const PAGE_SRC = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+/* ===================== constants ===================== */
+const STORE_KEY = "lims-readiness-edits";
+const SYS_STATUS = {
+  completed: {label:"Integration Completed", color:"#12875c"},
+  ontrack:   {label:"On-track for Completion", color:"#f2b705"},
+  inprogress:{label:"In Progress (under discussion)", color:"#f2b705"},
+  atrisk:    {label:"Delayed / At risk", color:"#d6443a"}
+};
+const TASK_STATUS = [
+  {v:"Completed", cls:"p-completed"},
+  {v:"Work in progress", cls:"p-wip"},
+  {v:"Yet to start", cls:"p-start"},
+  {v:"Yet to be defined", cls:"p-tbd"},
+  {v:"Blocked", cls:"p-blocked"}
+];
+const CATS = {
+  prod:    {label:"PROD", color:"#13bf8a"},
+  uat:     {label:"UAT", color:"#a3bdf8"},
+  systest: {label:"System testing", color:"#f99f72"},
+  indev:   {label:"In development", color:"#f7f019"},
+  pending: {label:"Yet to receive", color:"#86e3cb"},
+  archived:{label:"Historic (archived)", color:"#c3163f"}
+};
+const STACK_ORDER = ["prod","uat","systest","indev","pending","archived"];
+const PRIO = {1:{label:"First priority", color:"#c8f6ea"}, 2:{label:"Second priority", color:"#eef9a9"}, 3:{label:"Third priority", color:"#f8d4c4"}, 0:{label:"No priority", color:"#f2f4f3"}};
+
+/* ===================== data load ===================== */
+const EMBED = JSON.parse(document.getElementById("lims-data").textContent);
+let DATA = null, DIRTY = false, EDIT = false;
+try {
+  const loc = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+  if (loc && loc.base === EMBED.updatedAt && loc.data) { DATA = loc.data; DIRTY = true; }
+} catch (e) {}
+if (!DATA) DATA = JSON.parse(JSON.stringify(EMBED));
+try { EDIT = localStorage.getItem(STORE_KEY + "-mode") === "edit"; } catch (e) {}
+
+function save(){
+  DIRTY = true;
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({base: EMBED.updatedAt, data: DATA})); } catch (e) {}
+  render(false);
+}
+const uid = () => "x" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const sysById = id => DATA.systems.find(s => s.id === id);
+
+/* ===================== dates & calendar weeks ===================== */
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const pd = s => new Date(s + "T00:00:00");
+const daysTo = s => Math.round((pd(s) - TODAY) / 864e5);
+const fmt = (s, o={day:"numeric",month:"short",year:"numeric"}) => pd(s).toLocaleDateString("en-GB", o);
+function isoWeek(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return {w: Math.ceil(((t - y0) / 864e5 + 1) / 7), y: t.getUTCFullYear()};
+}
+function fridayOfCW(w, y){
+  const jan4 = new Date(y, 0, 4), dow = jan4.getDay() || 7;
+  const mon = new Date(y, 0, 4 - (dow - 1) + (w - 1) * 7);
+  const fri = new Date(mon.getFullYear(), mon.getMonth(), mon.getDate() + 4);
+  return fri.getFullYear() + "-" + String(fri.getMonth()+1).padStart(2,"0") + "-" + String(fri.getDate()).padStart(2,"0");
+}
+const cwOf = s => "CW" + isoWeek(pd(s)).w;
+document.getElementById("asof").textContent = TODAY.toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}) + " · " + "CW" + isoWeek(TODAY).w;
+
+const isOpen = t => t.status !== "Completed";
+const isOverdue = t => isOpen(t) && t.due && daysTo(t.due) < 0;
+const taskCls = s => (TASK_STATUS.find(x => x.v === s) || TASK_STATUS[2]).cls;
+
+/* ===================== status icons ===================== */
+function statusIcon(status, cx, cy, r){
+  const tick = c => `<path d="M${cx-r*.45},${cy+r*.02} L${cx-r*.1},${cy+r*.38} L${cx+r*.5},${cy-r*.35}" fill="none" stroke="${c}" stroke-width="${r*.28}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  if (status === "completed") return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#12a866"/>` + tick("#fff");
+  if (status === "ontrack") return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#f7c21b"/>` + tick("#12875c");
+  if (status === "atrisk") return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#e0483d"/><rect x="${cx-r*.12}" y="${cy-r*.55}" width="${r*.24}" height="${r*.7}" rx="${r*.1}" fill="#fff"/><circle cx="${cx}" cy="${cy+r*.45}" r="${r*.14}" fill="#fff"/>`;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#f7c21b"/>`;
+}
+const iconSvg = (status, size=22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${statusIcon(status,12,12,11)}</svg>`;
+const I_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`;
+const I_DEL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>`;
+
+/* ===================== isometric drawing kit ===================== */
+const S = "#39433f";
+const FONT_C = "Barlow Semi Condensed, Arial Narrow, Arial, sans-serif";
+const P = pts => pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+const pg = (pts, fill, sw=1.6, stroke=S) => `<polygon points="${P(pts)}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+function box(x, y, hw, h, o={}){
+  const hh = hw * .577, sw = o.sw || 1.6;
+  return pg([[x-hw,y-h],[x,y-h+hh],[x,y+hh],[x-hw,y]], o.left || "#e8edea", sw)
+       + pg([[x,y-h+hh],[x+hw,y-h],[x+hw,y],[x,y+hh]], o.right || "#d2d9d5", sw)
+       + pg([[x,y-h-hh],[x+hw,y-h],[x,y-h+hh],[x-hw,y-h]], o.top || "#ffffff", sw);
+}
+const LF = (x,y,hw,h,u,v) => [x-hw+u*hw, y-h+u*hw*.577+v*h];
+const RF = (x,y,hw,h,u,v) => [x+u*hw, y-h+hw*.577-u*hw*.577+v*h];
+const ln = (a,b,w=1.4,c=S) => `<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
+const dot = (p,r=1.8,c=S) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${r}" fill="${c}"/>`;
+function server(x,y,hw,h){
+  return box(x,y,hw,h)
+    + ln(LF(x,y,hw,h,.12,.38),LF(x,y,hw,h,.55,.38),1.6) + ln(LF(x,y,hw,h,.12,.66),LF(x,y,hw,h,.55,.66),1.6)
+    + dot(LF(x,y,hw,h,.72,.52)) + dot(LF(x,y,hw,h,.84,.52))
+    + ln(RF(x,y,hw,h,.2,.4),RF(x,y,hw,h,.8,.4),1,"#8a948f") + ln(RF(x,y,hw,h,.2,.62),RF(x,y,hw,h,.8,.62),1,"#8a948f");
+}
+const stack = (x,y,hw,h,n) => Array.from({length:n},(_,i)=>server(x,y-i*h,hw,h)).join("");
+function cyl(x,y,rx,h){
+  const ry = rx*.42; let s = `<path d="M${x-rx},${y-h} L${x-rx},${y} A${rx},${ry} 0 0 0 ${x+rx},${y} L${x+rx},${y-h} Z" fill="#e3e9e6" stroke="${S}" stroke-width="1.6"/>`;
+  [1/3,2/3].forEach(k => s += `<path d="M${x-rx},${y-h*k} A${rx},${ry} 0 0 0 ${x+rx},${y-h*k}" fill="none" stroke="${S}" stroke-width="1.3"/>`);
+  return s + `<ellipse cx="${x}" cy="${y-h}" rx="${rx}" ry="${ry}" fill="#fff" stroke="${S}" stroke-width="1.6"/>`;
+}
+function gear(x,y,r,teeth=8,col=S){
+  const pts=[], n=teeth*4;
+  for(let i=0;i<n;i++){ const a=i/n*Math.PI*2, rr=(i%4<2)?r+r*.32:r; pts.push([x+Math.cos(a)*rr, y+Math.sin(a)*rr]); }
+  return `<polygon points="${P(pts)}" fill="#fff" stroke="${col}" stroke-width="1.6" stroke-linejoin="round"/><circle cx="${x}" cy="${y}" r="${r*.42}" fill="#fff" stroke="${col}" stroke-width="1.6"/>`;
+}
+const platform = () => box(0,18,120,18,{top:"#fbfcfb",left:"#e6ebe8",right:"#d0d8d3"}) + pg([[0,-56],[97,0],[0,56],[-97,0]],"none",1.1,"#9aa6a0");
+const ICONS = {
+  "data-platform": () => platform() + stack(-24,22,38,24,3)
+    + `<circle cx="50" cy="-46" r="27" fill="#fff" stroke="#0b5c3f" stroke-width="2"/>`
+    + `<path d="M31,-60 A27,27 0 0 1 72,-58" fill="none" stroke="#12875c" stroke-width="2.4"/><path d="M68,-64 L73,-57 L65,-55" fill="none" stroke="#12875c" stroke-width="2.2" stroke-linecap="round"/>`
+    + `<path d="M69,-32 A27,27 0 0 1 28,-34" fill="none" stroke="#12875c" stroke-width="2.4"/><path d="M32,-28 L27,-35 L35,-37" fill="none" stroke="#12875c" stroke-width="2.2" stroke-linecap="round"/>`
+    + [-53,-46,-39].map((yy,i)=>ln([36,yy],[58+i*3,yy],1.6,"#0b5c3f")+dot([60+i*3,yy],2.4,"#0b5c3f")).join(""),
+  "mes": () => platform() + box(-60,-6,8,78) + box(18,14,46,62)
+    + [.25,.55].map(v=>[.2,.45,.7].map(u=>ln(LF(18,14,46,62,u,v),LF(18,14,46,62,u+.14,v),5,"#9fb0a8")).join("")).join("")
+    + [.3,.6].map(v=>ln(RF(18,14,46,62,.2,v),RF(18,14,46,62,.8,v),1.3,"#8a948f")).join("")
+    + gear(18,-48,9) + box(-34,34,28,34) + ln(LF(-34,34,28,34,.2,.5),LF(-34,34,28,34,.8,.5),4,"#9fb0a8") + cyl(56,44,17,30),
+  "sap": () => platform() + box(-24,24,42,8,{top:"#f3f6f4"})
+    + `<circle cx="-24" cy="-26" r="50" fill="none" stroke="#7d8a84" stroke-width="1.3"/>`
+    + [0,60,120,180,240,300].map(a=>`<circle cx="${(-24+Math.cos(a*Math.PI/180)*50).toFixed(1)}" cy="${(-26+Math.sin(a*Math.PI/180)*50).toFixed(1)}" r="4.5" fill="#fff" stroke="${S}" stroke-width="1.5"/>`).join("")
+    + `<circle cx="-24" cy="-26" r="34" fill="#f2f8f5" stroke="#0b5c3f" stroke-width="2.2"/><ellipse cx="-24" cy="-26" rx="15" ry="34" fill="none" stroke="#0b5c3f" stroke-width="1.8"/>`
+    + ln([-24,-60],[-24,8],1.8,"#0b5c3f") + ln([-58,-26],[10,-26],1.8,"#0b5c3f")
+    + `<path d="M-53,-43 Q-24,-36 5,-43 M-53,-9 Q-24,-16 5,-9" fill="none" stroke="#0b5c3f" stroke-width="1.8"/>` + cyl(46,40,22,44),
+  "teamcenter": () => platform() + stack(-14,26,40,22,3)
+    + `<ellipse cx="-14" cy="-43" rx="20" ry="10" fill="none" stroke="#12875c" stroke-width="2.2" stroke-dasharray="40 8"/><path d="M2,-50 L7,-43 L-1,-41" fill="none" stroke="#12875c" stroke-width="2" stroke-linecap="round"/>`
+    + gear(52,-58,15,9) + gear(72,-28,9,7)
+};
+const genericIcon = () => platform() + stack(0,22,40,24,2);
+function limsCore(){
+  let s = box(0,30,200,30,{top:"#fbfcfb",left:"#e4eae6",right:"#cdd5d0",sw:2.2});
+  for(let i=1;i<9;i++) s += ln(LF(0,30,200,30,i*.1,.25),LF(0,30,200,30,i*.1,.8),1,"#a3aea8") + ln(RF(0,30,200,30,i*.1,.25),RF(0,30,200,30,i*.1,.8),1,"#a3aea8");
+  s += pg([[0,-99],[172,0],[0,99],[-172,0]],"none",17,"#2c3633") + pg([[0,-99],[172,0],[0,99],[-172,0]],"none",11,"#12875c");
+  [[[-40,8],[-80,31],[-110,14]],[[40,8],[80,31],[118,10]],[[-36,-20],[-76,-43]],[[36,-20],[80,-46],[110,-29]],[[0,26],[0,58],[30,75]],[[-12,26],[-50,48]]]
+    .forEach(t => { s += `<polyline points="${P(t)}" fill="none" stroke="#9aa6a0" stroke-width="1.5"/>` + dot(t[t.length-1],3,"#9aa6a0"); });
+  s += box(0,14,74,10,{top:"#f1f4f2"});
+  const tower = (x,y,h) => { let r = box(x,y,19,h,{left:"#eef2f0",right:"#d6ddd9"}); for(let v=.12; v<.9; v+=.13) r += ln(LF(x,y,19,h,.15,v),LF(x,y,19,h,.85,v),1.2,"#6f7a75") + ln(RF(x,y,19,h,.15,v),RF(x,y,19,h,.85,v),1,"#9aa49f"); return r; };
+  s += tower(2,-20,82) + tower(-32,-2,70) + tower(36,-2,74) + tower(2,17,60);
+  s += `<text transform="translate(66,47) rotate(-30)" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="32" fill="#1c2521">LIMS Core</text>`;
+  return s;
+}
+
+/* ===================== overall status ===================== */
+function overall(){
+  const sys = DATA.systems, all = sys.flatMap(s => [...s.it, ...s.biz]);
+  const overdue = all.filter(isOverdue), notDone = sys.filter(s => s.status !== "completed");
+  let color = "green";
+  if (notDone.length || overdue.length) color = "amber";
+  if (sys.some(s => s.status === "atrisk") || overdue.length >= 3) color = "red";
+  const auto = color;
+  if (DATA.overallOverride) color = DATA.overallOverride;
+  const groups = {};
+  sys.forEach(s => (groups[s.status] = groups[s.status] || []).push(s.name));
+  const reasons = Object.keys(SYS_STATUS).filter(k => groups[k]).map(k => `<b>${SYS_STATUS[k].label}:</b> ${groups[k].map(esc).join(", ")}`);
+  reasons.push(overdue.length ? `${overdue.length} open task${overdue.length>1?"s":""} past target date` : "No tasks past target date");
+  if (DATA.overallOverride) reasons.push(`Manually set to ${color} (calculated: ${auto})`);
+  return { color, auto, reasons, open: all.filter(isOpen).length, overdue: overdue.length, total: all.length,
+    label: {green:"On track", amber:"Attention needed", red:"At risk"}[color] };
+}
+
+/* ===================== HOME ===================== */
+const NODE_POS = [[230,165],[1050,165],[230,615],[1050,615]];
+const C = [640,380];
+const outerSystems = () => DATA.systems.filter(s => s.id !== "lims-core").slice(0,4);
+
+function landscapeSvg(){
+  let s = `<svg class="landscape" viewBox="0 -60 1280 860" role="img" aria-label="LIMS Core connected to ${outerSystems().map(x=>esc(x.name)).join(", ")}">`;
+  s += `<defs><radialGradient id="gfade" cx="50%" cy="48%" r="55%"><stop offset="0" stop-color="#fff" stop-opacity="1"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+        <mask id="gmask"><rect y="-60" width="1280" height="860" fill="url(#gfade)"/></mask>
+        <filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1d3a2e" flood-opacity=".12"/></filter></defs>`;
+  let g = "";
+  for (let c = -12; c <= 12; c++){
+    const off = c*46;
+    g += `<line x1="200" y1="${(C[1]+off+.577*(200-C[0])).toFixed(1)}" x2="1080" y2="${(C[1]+off+.577*(1080-C[0])).toFixed(1)}"/><line x1="200" y1="${(C[1]+off-.577*(200-C[0])).toFixed(1)}" x2="1080" y2="${(C[1]+off-.577*(1080-C[0])).toFixed(1)}"/>`;
+  }
+  s += `<g stroke="#cfd8d3" stroke-width="1" mask="url(#gmask)">${g}</g>`;
+  const nodes = outerSystems().map((sys,i) => ({sys, x:NODE_POS[i][0], y:NODE_POS[i][1]}));
+
+  nodes.forEach(({x,y}) => {
+    const l=x-175, r=x+175, t=y-150, b=y+178, k=18;
+    s += `<path d="M${l+k},${t} H${r-k} L${r},${t+k} V${b-k} L${r-k},${b} H${l+k} L${l},${b-k} V${t+k} Z" fill="none" stroke="#cdd5d1" stroke-width="1.4"/><path d="M${l+8},${t+40} V${t+8} H${l+40} M${r-8},${b-40} V${b-8} H${r-40}" fill="none" stroke="#b5c0bb" stroke-width="1.4"/>`;
+  });
+  nodes.forEach(({sys,x,y}) => {
+    const st = sys.status;
+    const col = st === "inprogress" ? "#4a5450" : st === "atrisk" ? "#c9443a" : "#12875c";
+    const dark = st === "inprogress" ? "#2a302e" : st === "atrisk" ? "#7c241e" : "#0a4f36";
+    const d = `M${C[0]},${C[1]} L${x},${y+12}`;
+    s += `<path d="${d}" stroke="${dark}" stroke-width="24" stroke-linecap="round"/><path d="${d}" stroke="${col}" stroke-width="16" stroke-linecap="round"/>
+          <path d="${d}" stroke="#fff" stroke-opacity=".18" stroke-width="5" stroke-linecap="round" transform="translate(0,-3)"/>
+          <path class="flow" d="${d}" stroke="#fff" stroke-opacity="${st==="inprogress"?.25:.55}" stroke-width="3" stroke-dasharray="8 16" stroke-linecap="round"/>`;
+  });
+  s += `<g class="node" tabindex="0" role="link" aria-label="LIMS Core details" data-go="lims-core"><g class="lift" filter="url(#sh)"><g transform="translate(${C[0]},${C[1]})">${limsCore()}</g></g>
+        <text x="${C[0]}" y="${C[1]+168}" text-anchor="middle" class="hint">Click any system for open tasks →</text></g>`;
+  nodes.forEach(({sys,x,y}) => {
+    const tasks = [...sys.it, ...sys.biz], open = tasks.filter(isOpen).length, od = tasks.filter(isOverdue).length;
+    s += `<g class="node" tabindex="0" role="link" aria-label="${esc(sys.name)} details" data-go="${esc(sys.id)}">
+      <rect x="${x-175}" y="${y-150}" width="350" height="328" fill="transparent"/>
+      <g class="lift"><g filter="url(#sh)" transform="translate(${x},${y})">${(ICONS[sys.id] || genericIcon)()}</g>
+      <rect class="lbl-rect" x="${x-105}" y="${y+108}" width="210" height="60" rx="4" fill="#fff" stroke="#9aa6a0" stroke-width="1.4"/>
+      <text x="${x}" y="${y+139}" text-anchor="middle" font-family="${FONT_C}" font-weight="700" font-size="29" fill="#1c2521">${esc(sys.name)}</text>
+      <text x="${x}" y="${y+159}" text-anchor="middle" font-family="Barlow, Arial, sans-serif" font-size="14" fill="${od?"#d6443a":"#5f6c66"}" font-weight="${od?600:500}">${open} open task${open!==1?"s":""}${od?` · ${od} overdue`:""}</text></g></g>`;
+  });
+  nodes.forEach(({sys,x,y}) => {
+    const jx = (C[0]+x)/2, jy = (C[1]+y+12)/2, top = y < C[1], left = x < C[0];
+    s += box(jx, jy+9, 20, 13, {top:"#dfe6e2",left:"#c4cdc8",right:"#aeb9b3"}) + pg([[jx,jy-11],[jx+11,jy-4.6],[jx,jy+1.8],[jx-11,jy-4.6]],"#8f9c96",1.2);
+    const w = 212, h = 56, cx = left ? jx-22 : jx-190, cy = top ? jy-168 : jy+96;
+    s += top ? ln([jx,jy-16],[jx,cy+h],1.4,"#6f7a75") : ln([jx,jy+16],[jx,cy],1.4,"#6f7a75");
+    const [l1,l2] = sys.callout || ["",""];
+    s += `<g class="node" data-go="${esc(sys.id)}"><rect x="${cx}" y="${cy}" width="${w}" height="${h}" rx="3" fill="#fff" stroke="#3d4743" stroke-width="1.5"/>
+      ${statusIcon(sys.status, cx+30, cy+28, 18)}
+      <text font-family="${FONT_C}" font-weight="500" font-size="20" fill="#1c2521"><tspan x="${cx+58}" y="${l2 ? cy+24 : cy+35}">${esc(l1 || SYS_STATUS[sys.status].label)}</tspan>${l2 ? `<tspan x="${cx+58}" y="${cy+46}">${esc(l2)}</tspan>` : ""}</text></g>`;
+  });
+  return s + `</svg>`;
+}
+
+function msRows(items, k, showEdit=true){
+  const up = items.filter(m => m.date && daysTo(m.date) >= 0).sort((a,b) => pd(a.date)-pd(b.date));
+  const past = EDIT ? items.filter(m => !m.date || daysTo(m.date) < 0) : [];
+  const list = [...up.slice(0, EDIT ? 99 : 5), ...past];
+  if (!list.length) return `<div class="empty">No upcoming milestones.${EDIT ? " Use “Add” to create one." : ""}</div>`;
+  return `<ul class="ms-list">` + list.map(m => {
+    const d = m.date ? daysTo(m.date) : null, sys = sysById(m.sys);
+    const when = d === null ? "No date" : d < 0 ? `${-d} d ago` : d === 0 ? "Today" : `in ${d} day${d>1?"s":""}`;
+    const inner = `<div class="ms-date">${m.date ? `<b>${pd(m.date).getDate()}</b><small>${pd(m.date).toLocaleDateString("en-GB",{month:"short"})} · ${cwOf(m.date)}</small>` : `<b>–</b><small>TBD</small>`}</div>
+      <div><div class="ms-title">${esc(m.title)}</div>${sys ? `<div class="ms-sys"><span class="dot" style="background:${SYS_STATUS[sys.status].color}"></span> ${esc(sys.name)}</div>` : ""}</div>
+      <div class="ms-when ${d!==null&&d<0?"late":d!==null&&d<=14?"soon":""}">${when}</div>`;
+    return `<li><div class="ms-row">${sys && !EDIT ? `<a class="ms" href="#${esc(sys.id)}">${inner}</a>` : `<div class="ms">${inner}</div>`}
+      ${showEdit ? `<span class="row-acts ed-only"><button class="ibtn" type="button" title="Edit milestone" data-act="edit-ms" data-k="${k}" data-id="${m.id}">${I_EDIT}</button><button class="ibtn del" type="button" title="Delete milestone" data-act="del-ms" data-k="${k}" data-id="${m.id}">${I_DEL}</button></span>` : ""}</div></li>`;
+  }).join("") + `</ul>`;
+}
+
+function renderHome(){
+  const o = overall(), outer = outerSystems();
+  const inflight = outer.filter(s => s.status !== "completed").length;
+  const cp = DATA.config && DATA.config.cp;
+  let cpStat = "";
+  if (cp) { const t = cfgTotals(cp), tot = Object.values(t).reduce((a,b)=>a+b,0); if (tot) cpStat = `<a class="stat" href="#lims-core"><b>${Math.round((t.prod||0)/tot*100)}%</b>CP items in PROD</a>`; }
+  const legendKeys = ["completed","ontrack","inprogress"].concat(DATA.systems.some(s=>s.status==="atrisk") ? ["atrisk"] : []);
+  app.innerHTML = `
+  <section class="card stage">
+    <div class="stats">
+      <div class="stat"><b>${outer.length}</b>connected systems</div>
+      <div class="stat"><b>${inflight}</b>integrations in flight</div>
+      <div class="stat"><b>${o.open}</b>open tasks</div>
+      ${cpStat}
+    </div>
+    <div class="tl-wrap">
+      <button class="tl-btn" type="button" data-act="tl" aria-expanded="false">
+        <div class="tl" aria-hidden="true">${["red","amber","green"].map(c=>`<div class="lamp ${c} ${o.color===c?"on":""}"></div>`).join("")}</div>
+        <div class="tl-text"><small>Overall project status</small><b>${o.label}</b><span>${o.overdue} overdue · ${o.open}/${o.total} tasks open</span></div>
+      </button>
+      <div class="tl-pop" id="tlPop"><h4>Why ${o.color}?</h4><ul>${o.reasons.map(r=>`<li>${r}</li>`).join("")}</ul>
+        <p>Calculated: green when every integration is completed and nothing is overdue; amber when any integration is still open or a task is overdue; red when a system is at risk or 3+ tasks are overdue.</p>
+        <label class="ovr">Set manually <select id="ovrSel">${[["","Automatic"],["green","Green"],["amber","Amber"],["red","Red"]].map(([v,l])=>`<option value="${v}" ${DATA.overallOverride===v?"selected":""}>${l}</option>`).join("")}</select></label></div>
+    </div>
+    ${landscapeSvg()}
+    <div class="legend">${legendKeys.map(k => `<span>${iconSvg(k)} ${SYS_STATUS[k].label}</span>`).join("")}</div>
+  </section>
+
+  <div class="section-title"><h2>Upcoming milestones</h2><span>${EDIT ? "Edit mode: all milestones shown, including past ones" : "Next 5 per stream · click to open the system"}</span></div>
+  <div class="ms-grid">
+    <section class="card ms-card"><div class="ms-head"><span class="tag it">IT</span><h3>IT milestones</h3><button class="btn sm ed-only" type="button" data-act="add-ms" data-k="it">+ Add</button></div>${msRows(DATA.milestones.it,"it")}</section>
+    <section class="card ms-card"><div class="ms-head"><span class="tag biz">Business</span><h3>Business milestones</h3><button class="btn sm ed-only" type="button" data-act="add-ms" data-k="biz">+ Add</button></div>${msRows(DATA.milestones.biz,"biz")}</section>
+  </div>`;
+}
+
+/* ===================== CONFIGURATION (CP / IQC) ===================== */
+let cfgTab = "cp";
+const stepTotal = st => Object.values(st.v || {}).reduce((a,b)=>a+(+b||0),0);
+function cfgTotals(cfg){ const t = {}; cfg.steps.forEach(st => Object.entries(st.v||{}).forEach(([k,n]) => t[k] = (t[k]||0) + (+n||0))); return t; }
+
+function pie(v){
+  const R = 50, entries = STACK_ORDER.filter(k => (+v[k]||0) > 0).map(k => [k, +v[k]]);
+  const total = entries.reduce((a,[,n])=>a+n,0);
+  if (!total) return `<svg viewBox="-60 -60 120 120"><circle r="${R}" fill="#e6e9e7"/><text y="5" text-anchor="middle" font-size="13" fill="#6b7570">no items</text></svg>`;
+  let a0 = -Math.PI/2, paths = "", labels = "";
+  entries.forEach(([k,n]) => {
+    const frac = n/total, a1 = a0 + frac*Math.PI*2, col = CATS[k] ? CATS[k].color : "#999";
+    if (frac >= .9999) paths += `<circle r="${R}" fill="${col}"/>`;
+    else {
+      const x0 = Math.cos(a0)*R, y0 = Math.sin(a0)*R, x1 = Math.cos(a1)*R, y1 = Math.sin(a1)*R;
+      paths += `<path d="M0,0 L${x0.toFixed(2)},${y0.toFixed(2)} A${R},${R} 0 ${frac>.5?1:0} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z" fill="${col}" stroke="#fff" stroke-width="1"/>`;
+    }
+    const am = (a0+a1)/2, lr = frac >= .9999 ? 0 : (frac < .12 ? 40 : 30);
+    const lx = frac >= .9999 ? 0 : Math.cos(am)*lr, ly = frac >= .9999 ? 22 : Math.sin(am)*lr;
+    const wdt = String(n).length > 1 ? 20 : 15;
+    labels += `<rect x="${(lx-wdt/2).toFixed(1)}" y="${(ly-9).toFixed(1)}" width="${wdt}" height="18" fill="#4b4f50"/><text x="${lx.toFixed(1)}" y="${(ly+4.5).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff" font-family="Barlow, Arial, sans-serif">${n}</text>`;
+    a0 = a1;
+  });
+  return `<svg viewBox="-60 -60 120 120" role="img" aria-label="${entries.map(([k,n])=>`${CATS[k]?CATS[k].label:k} ${n}`).join(", ")}"><g filter="drop-shadow(0 2px 2px rgba(0,0,0,.15))">${paths}</g>${labels}</svg>`;
+}
+function stackBar(cfg){
+  const t = cfgTotals(cfg), keys = STACK_ORDER.filter(k => t[k]), tot = keys.reduce((a,k)=>a+t[k],0);
+  const H = 300, W = 220, bw = 150, x0 = (W-bw)/2;
+  if (!tot) return "";
+  let y = H, s = "";
+  keys.forEach(k => {
+    const h = Math.max(t[k]/tot*H, 18); y -= h;
+    s += `<rect x="${x0}" y="${y.toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" fill="${CATS[k].color}"/><text x="${W/2}" y="${(y+h/2+5).toFixed(1)}" text-anchor="middle" font-size="15" fill="#222" font-family="Barlow, Arial, sans-serif">${t[k]}</text>`;
+  });
+  const top = Math.min(y, 0);
+  return `<svg viewBox="0 ${top-6} ${W} ${H-top+36}" role="img" aria-label="Totals: ${keys.map(k=>CATS[k].label+" "+t[k]).join(", ")}">${s}
+    <line x1="4" y1="${H}" x2="${W-4}" y2="${H}" stroke="#333" stroke-width="1.2"/><text x="${W/2}" y="${H+20}" text-anchor="middle" font-size="13" font-weight="700" font-family="Barlow, Arial, sans-serif">Current · ${tot} items</text></svg>`;
+}
+function renderConfig(){
+  const cfgs = DATA.config || {}; if (!cfgs[cfgTab]) cfgTab = Object.keys(cfgs)[0];
+  const cfg = cfgs[cfgTab]; if (!cfg) return "";
+  const prios = [...new Set(cfg.steps.map(s => s.prio || 0))].sort();
+  return `<section class="card cfg-card">
+    <div class="cfg-top">
+      <div><h2>${esc(cfg.title)}</h2><div class="sub">${esc(cfg.badge || "")}</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn sm ed-only" type="button" data-act="edit-cfg">${I_EDIT.replace("<svg","<svg width='14' height='14'")} Edit header</button>
+        <div class="tabs" role="tablist">${Object.entries(cfgs).map(([k,c]) => `<button type="button" role="tab" class="${k===cfgTab?"on":""}" data-act="cfg-tab" data-k="${k}">${esc(c.label)}</button>`).join("")}</div>
+      </div>
+    </div>
+    <div class="cfg">
+      <div>
+        <div class="tiles">
+          ${cfg.steps.map(st => `<div class="tile" style="background:${(PRIO[st.prio]||PRIO[0]).color}">
+              <h4>${esc(st.name)} – ${stepTotal(st)}</h4>${pie(st.v||{})}
+              <span class="t-acts ed-only"><button class="ibtn" type="button" title="Edit" data-act="edit-step" data-id="${st.id}">${I_EDIT}</button><button class="ibtn del" type="button" title="Remove" data-act="del-step" data-id="${st.id}">${I_DEL}</button></span>
+            </div>`).join("")}
+          <button class="tile add ed-only" type="button" data-act="add-step">+ Add process step</button>
+        </div>
+        <div class="cfoot">
+          <div class="prio">${prios.filter(p=>p).map(p => `<span><i style="background:${PRIO[p].color}"></i>${PRIO[p].label}</span>`).join("")}</div>
+          ${cfg.note ? `<div class="note">• ${esc(cfg.note)}</div>` : ""}
+        </div>
+      </div>
+      <div class="side">
+        <div class="target">${esc(cfg.target || "")}</div>
+        ${stackBar(cfg)}
+        <ul class="clegend">${cfg.cats.map(k => `<li><i style="background:${CATS[k].color}"></i>${CATS[k].label}</li>`).join("")}</ul>
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ===================== DETAIL ===================== */
+const filters = {};
+const initials = s => s.replace(/[–\-\/&()]/g," ").split(/\s+/).filter(w => /^[A-Za-z]/.test(w)).slice(0,2).map(w => w[0].toUpperCase()).join("") || "?";
+function dueCell(t){
+  if (!t.due) return `<div class="due"><b>TBD</b><small>${t.status==="Completed"?"Completed":"No target date"}</small></div>`;
+  const d = daysTo(t.due);
+  let sub;
+  if (t.status === "Completed") sub = `<small>Completed</small>`;
+  else if (d < 0) sub = `<small class="late">${-d} day${d<-1?"s":""} overdue</small>`;
+  else if (d === 0) sub = `<small class="soon">Due today</small>`;
+  else sub = `<small class="${d<=7?"soon":""}">${fmt(t.due,{day:"numeric",month:"short"})} · in ${d} day${d>1?"s":""}</small>`;
+  return `<div class="due"><b>${cwOf(t.due)} ${pd(t.due).getFullYear() !== TODAY.getFullYear() ? pd(t.due).getFullYear() : ""}</b>${sub}</div>`;
+}
+function taskRows(sys, key, list){
+  const sorted = [...list].sort((a,b) => (a.status==="Completed") - (b.status==="Completed") || (a.due?pd(a.due):Infinity) - (b.due?pd(b.due):Infinity));
+  if (!sorted.length) return `<div class="empty">${!sys[key].length ? "No tasks recorded yet." : "No open tasks — all completed."}${EDIT ? " Use “+ Add task” below." : ""}</div>`;
+  return sorted.map(t => `<div class="trow ${isOverdue(t)?"overdue":""} ${t.status==="Completed"?"done":""}">
+      <div class="tname"><b>${esc(t.t)}</b>${t.note ? `<small>${esc(t.note)}</small>` : ""}</div>
+      <div class="owner ${t.owner?"":"tbd"}"><span class="av">${t.owner ? esc(initials(t.owner)) : "?"}</span>${t.owner ? esc(t.owner) : "Not assigned"}</div>
+      ${dueCell(t)}
+      <div class="st"><span class="pill ${taskCls(t.status)}">${esc(t.status)}</span></div>
+      <div class="row-acts ed-only"><button class="ibtn" type="button" title="Edit task" data-act="edit-task" data-sys="${sys.id}" data-k="${key}" data-id="${t.id}">${I_EDIT}</button><button class="ibtn del" type="button" title="Delete task" data-act="del-task" data-sys="${sys.id}" data-k="${key}" data-id="${t.id}">${I_DEL}</button></div>
+    </div>`).join("");
+}
+function panel(sys, key){
+  const f = filters[sys.id+key] || "open", list = sys[key], open = list.filter(isOpen), isIT = key === "it";
+  return `<section class="card panel">
+    <div class="phead"><div class="ptitle"><span class="tag ${isIT?"it":"biz"}">${isIT?"IT":"Business"}</span> ${isIT?"IT open tasks":"Business open tasks"}</div>
+      <div class="chips"><button type="button" class="chip ${f==="open"?"on":""}" data-act="filter" data-sys="${sys.id}" data-k="${key}" data-f="open">Open · ${open.length}</button><button type="button" class="chip ${f==="all"?"on":""}" data-act="filter" data-sys="${sys.id}" data-k="${key}" data-f="all">All · ${list.length}</button></div></div>
+    <div class="thead"><div>Task</div><div>Responsible</div><div>Target</div><div>Status</div><div class="ed-col"></div></div>
+    <div>${taskRows(sys, key, f==="open" ? open : list)}</div>
+    <div class="addrow ed-only"><button class="btn sm" type="button" data-act="add-task" data-sys="${sys.id}" data-k="${key}">+ Add task</button></div>
+  </section>`;
+}
+function ring(p, label){
+  const r = 52, c = 2*Math.PI*r, col = p === null ? "#cfd6d2" : p >= 80 ? "#12875c" : p >= 40 ? "#e0a800" : "#d6443a";
+  return `<svg viewBox="0 0 130 130"><circle cx="65" cy="65" r="${r}" fill="none" stroke="#e7ece9" stroke-width="12"/>
+    ${p ? `<circle cx="65" cy="65" r="${r}" fill="none" stroke="${col}" stroke-width="12" stroke-linecap="round" stroke-dasharray="${c*p/100} ${c}" transform="rotate(-90 65 65)"/>` : ""}
+    <text x="65" y="72" text-anchor="middle" font-family="Barlow, Arial, sans-serif" font-weight="700" font-size="28" fill="#1c2521">${p === null ? "–" : p + "%"}</text></svg><small>${label}</small>`;
+}
+function renderDetail(sys){
+  const tasks = [...sys.it, ...sys.biz], open = tasks.filter(isOpen), od = tasks.filter(isOverdue), done = tasks.length - open.length;
+  const next = open.filter(t => t.due && daysTo(t.due) >= 0).sort((a,b) => pd(a.due)-pd(b.due))[0];
+  const isCore = sys.id === "lims-core";
+  const icon = isCore ? `<svg viewBox="-215 -150 430 300">${limsCore()}</svg>` : `<svg viewBox="-135 -110 270 205">${(ICONS[sys.id]||genericIcon)()}</svg>`;
+  let ringHtml;
+  if (isCore && DATA.config && DATA.config.cp) {
+    const t = cfgTotals(DATA.config.cp), tot = Object.values(t).reduce((a,b)=>a+b,0);
+    ringHtml = ring(tot ? Math.round((t.prod||0)/tot*100) : null, `CP items in PROD (${t.prod||0}/${tot})`);
+  } else ringHtml = ring(tasks.length ? Math.round(done/tasks.length*100) : null, `Tasks completed (${done}/${tasks.length})`);
+  const ms = [...DATA.milestones.it.map(m=>({...m,k:"it"})), ...DATA.milestones.biz.map(m=>({...m,k:"biz"}))]
+    .filter(m => m.sys === sys.id && m.date && daysTo(m.date) >= 0).sort((a,b) => pd(a.date)-pd(b.date));
+  const callout = (sys.callout||[]).filter(Boolean).join(" ");
+
+  app.innerHTML = `
+  <div class="crumbs"><a href="#">← System landscape</a> &nbsp;/&nbsp; ${esc(sys.name)}</div>
+  <section class="card dhero">
+    <button class="btn sm ed-only edit-sys" type="button" data-act="edit-sys" data-sys="${sys.id}">${I_EDIT.replace("<svg","<svg width='14' height='14'")} Edit system</button>
+    <div class="dicon">${icon}</div>
+    <div class="dinfo">
+      <div class="eyebrow">${isCore ? esc(sys.role || "Core platform") : "Interface to LIMS · " + esc(sys.role || "")}</div>
+      <h1>${esc(sys.name)}</h1>
+      <span class="spill ${sys.status}">${iconSvg(sys.status,20)} ${SYS_STATUS[sys.status].label}${callout ? ` — ${esc(callout)}` : ""}</span>
+      <p>${esc(sys.desc)}</p>
+    </div>
+    <div class="ring">${ringHtml}</div>
+  </section>
+
+  <div class="kpis">
+    <div class="card kpi"><small>Open IT tasks</small><b>${sys.it.filter(isOpen).length}</b><span>of ${sys.it.length} total</span></div>
+    <div class="card kpi"><small>Open business tasks</small><b>${sys.biz.filter(isOpen).length}</b><span>of ${sys.biz.length} total</span></div>
+    <div class="card kpi ${od.length?"warn":""}"><small>Overdue</small><b>${od.length}</b><span>${od.length ? "past target date" : "nothing overdue"}</span></div>
+    <div class="card kpi"><small>Next target</small><b style="font-size:24px">${next ? cwOf(next.due) + " · " + fmt(next.due,{day:"numeric",month:"short"}) : "—"}</b><span>${next ? esc(next.t) : "No dated open tasks"}</span></div>
+  </div>
+
+  ${isCore ? renderConfig() : ""}
+
+  <div class="panels">${panel(sys,"it")}${panel(sys,"biz")}</div>
+
+  <section class="card ml"><div class="ml-head"><h3>Upcoming milestones — ${esc(sys.name)}</h3></div>
+    ${ms.length ? `<ul class="ms-list">` + ms.map(m => { const d = daysTo(m.date); return `<li><div class="ms-row"><div class="ms">
+      <div class="ms-date"><b>${pd(m.date).getDate()}</b><small>${pd(m.date).toLocaleDateString("en-GB",{month:"short"})} · ${cwOf(m.date)}</small></div>
+      <div><div class="ms-title">${esc(m.title)}</div><div class="ms-sys"><span class="tag ${m.k}" style="font-size:10.5px;padding:2px 7px">${m.k==="it"?"IT":"Business"}</span></div></div>
+      <div class="ms-when ${d<=14?"soon":""}">${d===0?"Today":`in ${d} day${d>1?"s":""}`}</div></div></div></li>`; }).join("") + `</ul>` : `<div class="empty">No upcoming milestones for this system. Milestones are managed on the landscape page.</div>`}
+  </section>
+
+  <nav class="sysnav"><span>Other systems:</span>${DATA.systems.map(s => `<a href="#${esc(s.id)}" class="${s.id===sys.id?"cur":""}"><span class="dot" style="background:${SYS_STATUS[s.status].color}"></span>${esc(s.name)}</a>`).join("")}</nav>`;
+}
+
+/* ===================== modal forms ===================== */
+const modal = document.getElementById("modal"), mbox = document.getElementById("mbox");
+function closeModal(){ modal.hidden = true; mbox.innerHTML = ""; }
+modal.addEventListener("click", e => { if (e.target === modal) closeModal(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !modal.hidden) closeModal(); });
+
+function fieldHtml(f, val){
+  const id = "f_" + f.key, v = val ?? "";
+  if (f.type === "select") return `<label class="fld"><span>${f.label}</span><select id="${id}" name="${f.key}">${f.options.map(([ov,ol]) => `<option value="${esc(ov)}" ${String(ov)===String(v)?"selected":""}>${esc(ol)}</option>`).join("")}</select></label>`;
+  if (f.type === "textarea") return `<label class="fld"><span>${f.label}</span><textarea id="${id}" name="${f.key}">${esc(v)}</textarea></label>`;
+  if (f.type === "due") return `<div class="fld"><span>${f.label}</span><div class="duef">
+      <input type="date" name="${f.key}" value="${esc(v)}" aria-label="Target date">
+      <input type="number" name="__cw" min="1" max="53" placeholder="CW" aria-label="Calendar week" value="${v ? isoWeek(pd(v)).w : ""}">
+      <button type="button" class="btn sm" data-clear="${f.key}">Clear (TBD)</button></div>
+      <small style="color:var(--muted);font-size:12.5px">Type a calendar week to set the date to that week's Friday, or pick an exact date.</small></div>`;
+  return `<label class="fld"><span>${f.label}</span><input id="${id}" name="${f.key}" type="${f.type||"text"}" value="${esc(v)}" ${f.type==="number"?'min="0" step="1"':""} ${f.required?"required":""} ${f.placeholder?`placeholder="${esc(f.placeholder)}"`:""}></label>`;
+}
+function openForm({title, fields, values={}, onSave, onDelete, grid}){
+  mbox.innerHTML = `<h3>${esc(title)}</h3><form id="mform" novalidate>
+    ${grid ? `<div class="fgrid">${fields.map(f => fieldHtml(f, values[f.key])).join("")}</div>` : fields.map(f => fieldHtml(f, values[f.key])).join("")}
+    <div class="mfoot">${onDelete ? `<button type="button" class="btn danger" id="mdel">Delete</button>` : ""}<span class="spacer"></span>
+      <button type="button" class="btn" id="mcancel">Cancel</button><button type="submit" class="btn primary">Save</button></div></form>`;
+  modal.hidden = false;
+  const form = mbox.querySelector("form");
+  const first = form.querySelector("input,select,textarea"); if (first) first.focus();
+  const dueIn = form.querySelector('input[type=date]'), cwIn = form.querySelector('input[name=__cw]');
+  if (dueIn && cwIn) {
+    cwIn.addEventListener("input", () => { const w = +cwIn.value; if (w >= 1 && w <= 53) { let y = TODAY.getFullYear(); if (w < isoWeek(TODAY).w - 8) y++; dueIn.value = fridayOfCW(w, y); } });
+    dueIn.addEventListener("change", () => { cwIn.value = dueIn.value ? isoWeek(pd(dueIn.value)).w : ""; });
+    form.querySelector("[data-clear]").addEventListener("click", () => { dueIn.value = ""; cwIn.value = ""; });
+  }
+  mbox.querySelector("#mcancel").onclick = closeModal;
+  if (onDelete) mbox.querySelector("#mdel").onclick = () => { closeModal(); onDelete(); };
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const out = {};
+    for (const f of fields) {
+      const el = form.elements[f.key]; let v = el.value.trim();
+      if (f.type === "number") v = Math.max(0, parseInt(v || "0", 10) || 0);
+      if (f.required && v === "") { el.focus(); el.style.borderColor = "var(--red)"; return; }
+      out[f.key] = v;
+    }
+    closeModal(); onSave(out);
+  });
+}
+function confirmBox(msg, yesLabel, onYes){
+  mbox.innerHTML = `<h3>Please confirm</h3><p>${msg}</p><div class="mfoot"><span class="spacer"></span><button class="btn" type="button" id="cno">Cancel</button><button class="btn primary" type="button" id="cyes">${yesLabel}</button></div>`;
+  modal.hidden = false;
+  mbox.querySelector("#cno").onclick = closeModal;
+  mbox.querySelector("#cyes").onclick = () => { closeModal(); onYes(); };
+}
+let toastTimer;
+function toast(msg, ms=3200){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, ms); }
+
+const sysOptions = () => DATA.systems.map(s => [s.id, s.name]);
+const TASK_FIELDS = [
+  {key:"t", label:"Task", required:true},
+  {key:"owner", label:"Responsible", placeholder:"Name or role (leave empty if not assigned)"},
+  {key:"due", label:"Target date", type:"due"},
+  {key:"status", label:"Status", type:"select", options:TASK_STATUS.map(s => [s.v, s.v])},
+  {key:"note", label:"Note (optional)", placeholder:"e.g. Delayed due to holiday window"}
+];
+const MS_FIELDS = () => [
+  {key:"title", label:"Milestone", required:true},
+  {key:"date", label:"Date", type:"due"},
+  {key:"sys", label:"System", type:"select", options:sysOptions()},
+  {key:"k", label:"Stream", type:"select", options:[["it","IT"],["biz","Business"]]}
+];
+
+/* ===================== export / import ===================== */
+function downloadText(name, text, type){
+  try {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text], {type}));
+    a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    toast(`Downloading ${name}. If nothing downloads here, use “Copy data” instead.`, 4500);
+  } catch (e) { toast("Download is blocked in this viewer — use “Copy data”."); }
+}
+function exportHtml(){
+  DATA.updatedAt = new Date().toISOString();
+  const json = JSON.stringify(DATA, null, 2).replace(/</g, "\\u003c");
+  const re = /(<script id="lims-data" type="application\/json">)[\s\S]*?(<\/script>)/;
+  const html = PAGE_SRC.replace(re, (m, a, b) => a + "\n" + json + "\n" + b)
+                       .replace(/<body class="[^"]*"/, "<body");
+  save();
+  downloadText("index.html", html, "text/html");
+}
+function copyText(text, label){
+  const fallback = () => {
+    mbox.innerHTML = `<h3>Copy ${label}</h3><p>Select all and copy:</p><label class="fld"><textarea style="min-height:260px;font-family:monospace;font-size:12px" readonly>${esc(text)}</textarea></label><div class="mfoot"><span class="spacer"></span><button class="btn primary" type="button" id="cclose">Close</button></div>`;
+    modal.hidden = false; mbox.querySelector("#cclose").onclick = closeModal; const ta = mbox.querySelector("textarea"); ta.focus(); ta.select();
+  };
+  try { navigator.clipboard.writeText(text).then(() => toast(`${label} copied to clipboard`), fallback); } catch (e) { fallback(); }
+}
+function importData(){
+  mbox.innerHTML = `<h3>Import data</h3><p>Choose a <code>data.json</code> file exported from this page, or paste its contents.</p>
+    <label class="fld"><span>File</span><input type="file" id="ifile" accept=".json,application/json"></label>
+    <label class="fld"><span>…or paste JSON</span><textarea id="itext" style="min-height:160px;font-family:monospace;font-size:12px"></textarea></label>
+    <div class="mfoot"><span class="spacer"></span><button class="btn" type="button" id="icancel">Cancel</button><button class="btn primary" type="button" id="igo">Import</button></div>`;
+  modal.hidden = false;
+  const ta = mbox.querySelector("#itext");
+  mbox.querySelector("#ifile").addEventListener("change", e => { const f = e.target.files[0]; if (f) f.text().then(t => ta.value = t); });
+  mbox.querySelector("#icancel").onclick = closeModal;
+  mbox.querySelector("#igo").onclick = () => {
+    try {
+      const d = JSON.parse(ta.value);
+      if (!d || !Array.isArray(d.systems) || !d.milestones) throw new Error("missing systems / milestones");
+      DATA = d; closeModal(); save(); toast("Data imported");
+    } catch (e) { toast("Could not import: " + e.message); }
+  };
+}
+
+/* ===================== actions ===================== */
+const app = document.getElementById("app");
+function findList(el){ const sys = sysById(el.dataset.sys); return {sys, list: sys ? sys[el.dataset.k] : null}; }
+
+document.addEventListener("click", e => {
+  const pop = document.getElementById("tlPop");
+  const b = e.target.closest("[data-act]");
+  if (pop && !e.target.closest(".tl-wrap")) pop.classList.remove("open");
+  if (!b) {
+    const go = e.target.closest("[data-go]");
+    if (go && app.contains(go)) location.hash = go.dataset.go;
+    return;
+  }
+  const act = b.dataset.act;
+  switch (act) {
+    case "tl": pop.classList.toggle("open"); b.setAttribute("aria-expanded", pop.classList.contains("open")); break;
+    case "filter": filters[b.dataset.sys + b.dataset.k] = b.dataset.f; render(false); break;
+    case "cfg-tab": cfgTab = b.dataset.k; render(false); break;
+
+    case "add-task": { const {list} = findList(b);
+      openForm({title:"Add task", fields:TASK_FIELDS, values:{status:"Yet to start"}, onSave: v => { list.push({id:uid(), ...v}); save(); toast("Task added"); }}); break; }
+    case "edit-task": { const {list} = findList(b), t = list.find(x => x.id === b.dataset.id);
+      openForm({title:"Edit task", fields:TASK_FIELDS, values:t, onSave: v => { Object.assign(t, v); save(); toast("Task updated"); },
+        onDelete: () => { list.splice(list.indexOf(t),1); save(); toast("Task deleted"); }}); break; }
+    case "del-task": { const {list} = findList(b), t = list.find(x => x.id === b.dataset.id);
+      confirmBox(`Remove the task “${esc(t.t)}”?`, "Remove", () => { list.splice(list.indexOf(t),1); save(); toast("Task removed"); }); break; }
+
+    case "edit-sys": { const s = sysById(b.dataset.sys);
+      openForm({title:`Edit ${s.name}`, grid:false, fields:[
+        {key:"name", label:"System name", required:true},
+        {key:"status", label:"Overall status", type:"select", options:Object.entries(SYS_STATUS).map(([k,v]) => [k, v.label])},
+        {key:"c1", label:"Landscape callout – line 1"}, {key:"c2", label:"Landscape callout – line 2"},
+        {key:"role", label:"Role / subtitle"}, {key:"desc", label:"Description", type:"textarea"}],
+        values:{...s, c1:(s.callout||[])[0], c2:(s.callout||[])[1]},
+        onSave: v => { s.name = v.name; s.status = v.status; s.role = v.role; s.desc = v.desc; s.callout = [v.c1, v.c2]; save(); toast("System updated"); }}); break; }
+
+    case "add-ms": openForm({title:"Add milestone", fields:MS_FIELDS(), values:{k:b.dataset.k, sys:DATA.systems[1] ? DATA.systems[1].id : ""},
+        onSave: v => { DATA.milestones[v.k].push({id:uid(), title:v.title, date:v.date, sys:v.sys}); save(); toast("Milestone added"); }}); break;
+    case "edit-ms": { const L = DATA.milestones[b.dataset.k], m = L.find(x => x.id === b.dataset.id);
+      openForm({title:"Edit milestone", fields:MS_FIELDS(), values:{...m, k:b.dataset.k},
+        onSave: v => { L.splice(L.indexOf(m),1); DATA.milestones[v.k].push({id:m.id, title:v.title, date:v.date, sys:v.sys}); save(); toast("Milestone updated"); },
+        onDelete: () => { L.splice(L.indexOf(m),1); save(); toast("Milestone deleted"); }}); break; }
+    case "del-ms": { const L = DATA.milestones[b.dataset.k], m = L.find(x => x.id === b.dataset.id);
+      confirmBox(`Remove the milestone “${esc(m.title)}”?`, "Remove", () => { L.splice(L.indexOf(m),1); save(); toast("Milestone removed"); }); break; }
+
+    case "edit-cfg": { const c = DATA.config[cfgTab];
+      openForm({title:`Edit ${c.label} header`, fields:[{key:"label",label:"Tab label",required:true},{key:"title",label:"Title"},{key:"badge",label:"Subtitle"},{key:"target",label:"Target text"},{key:"note",label:"Note",type:"textarea"}],
+        values:c, onSave: v => { Object.assign(c, v); save(); toast("Header updated"); }}); break; }
+    case "add-step": case "edit-step": { const c = DATA.config[cfgTab], st = act === "edit-step" ? c.steps.find(x => x.id === b.dataset.id) : null;
+      const fields = [{key:"name",label:"Process step",required:true},{key:"prio",label:"Priority",type:"select",options:[[1,"First priority"],[2,"Second priority"],[3,"Third priority"],[0,"None"]]}]
+        .concat(c.cats.map(k => ({key:"v_"+k, label:CATS[k].label + " (items)", type:"number"})));
+      const vals = st ? {name:st.name, prio:st.prio, ...Object.fromEntries(c.cats.map(k => ["v_"+k, (st.v||{})[k]||0]))} : {prio:2, ...Object.fromEntries(c.cats.map(k => ["v_"+k, 0]))};
+      openForm({title: st ? `Edit ${st.name}` : "Add process step", fields, values:vals,
+        onSave: v => { const rec = st || {id:uid()}; rec.name = v.name; rec.prio = +v.prio; rec.v = {}; c.cats.forEach(k => { if (v["v_"+k]) rec.v[k] = v["v_"+k]; }); if (!st) c.steps.push(rec); save(); toast(st ? "Step updated" : "Step added"); },
+        onDelete: st ? () => { c.steps.splice(c.steps.indexOf(st),1); save(); toast("Step removed"); } : null}); break; }
+    case "del-step": { const c = DATA.config[cfgTab], st = c.steps.find(x => x.id === b.dataset.id);
+      confirmBox(`Remove “${esc(st.name)}” from ${esc(c.label)}?`, "Remove", () => { c.steps.splice(c.steps.indexOf(st),1); save(); toast("Step removed"); }); break; }
+
+    case "export-html": exportHtml(); break;
+    case "export-json": downloadText("data.json", JSON.stringify(DATA, null, 2), "application/json"); break;
+    case "copy-json": copyText(JSON.stringify(DATA, null, 2), "Data"); break;
+    case "import": importData(); break;
+    case "reset": confirmBox("Discard every change made in this browser and go back to the data published in this page?", "Discard changes", () => {
+        try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+        DATA = JSON.parse(JSON.stringify(EMBED)); DIRTY = false; render(false); toast("Local changes discarded"); }); break;
+  }
+});
+document.addEventListener("change", e => {
+  if (e.target.id === "ovrSel") { DATA.overallOverride = e.target.value; save(); document.getElementById("tlPop").classList.add("open"); }
+});
+app.addEventListener("keydown", e => {
+  const go = e.target.closest && e.target.closest("[data-go]");
+  if (go && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); location.hash = go.dataset.go; }
+});
+document.getElementById("editToggle").addEventListener("click", () => {
+  EDIT = !EDIT; try { localStorage.setItem(STORE_KEY + "-mode", EDIT ? "edit" : "view"); } catch (e) {}
+  render(false);
+});
+
+/* ===================== render / router ===================== */
+function render(top=true){
+  document.body.classList.toggle("editing", EDIT);
+  document.getElementById("editToggle").innerHTML = EDIT ? "✓ Done editing" : I_EDIT.replace("<svg","<svg width='15' height='15'") + " Edit";
+  document.getElementById("editToggle").className = EDIT ? "btn green" : "btn";
+  document.getElementById("editmsg").innerHTML = `<b>Edit mode.</b> Changes save automatically in this browser${DIRTY ? `<span class="dirty">not yet in index.html</span>` : ""}. To publish them for everyone, download <b>index.html</b> and commit it to your GitHub repository.`;
+  document.getElementById("foot").textContent = "Last published " + new Date(EMBED.updatedAt).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}) + (DIRTY ? " · showing local edits from this browser" : "");
+  const id = location.hash.slice(1), sys = sysById(id);
+  const y = window.scrollY;
+  if (sys) { renderDetail(sys); document.title = sys.name + " · LIMS System Readiness"; }
+  else { renderHome(); document.title = "LIMS System Readiness"; }
+  window.scrollTo(0, top ? 0 : y);
+}
+window.addEventListener("hashchange", () => render(true));
+render(true);
+</script>
+</body>
+</html>
